@@ -177,7 +177,7 @@ export class AppRoutingModule { }
 
 #### 6. Provide an example of how your implementation of a client-side framework helped you effectively create a single-page application.
 
-https://apx.halliburton.com/, https://board.advendor.net/, https://bondswithoutborders.com/ - for see all you need access to, I don't have it now. But I can explain the most interesting fiches.
+https://apx.halliburton.com/, https://bondswithoutborders.com/ - for see all you need access to, I don't have it now. But I can explain the most interesting fiches.
 
 #### 7. Differences between Angular.js and Angular? When are they better than REACT?
 
