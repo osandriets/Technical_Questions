@@ -11,7 +11,7 @@ ngafterviewinit
 import ....
 
 @Component({
-  selector: 'concordia-nx-ionic-auth-container',
+  selector: 'app-nx-ionic-auth-container',
   templateUrl: './auth-container.component.html',
   styleUrls: ['./auth-container.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
