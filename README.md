@@ -1,17 +1,135 @@
 # Technical_Questions
 
-#### 1. Give examples of lifecycle hooks in Angular (ngOnChanges, ngafterviewinit, ngOnDestroy, ngafterviewchecked, ngdocheck, etc.).
+#### 1. Give examples of lifecycle hooks in Angular (ngOnChanges, ngAfterViewInit, ngOnDestroy, ngAfterViewChecked, ngDoCheck, etc.).
 
-ngOnChanges
+**ngOnChanges** - is called when any data-bound property of a directive changes(update form if some property changed  )
+```sh
+import ...
 
-ngafterviewinit
+@Component({
+  selector: 'app-ui-account-edit',
+  templateUrl: './edit-account.component.html',
+  styleUrls: ['./edit-account.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class EditAccountComponent implements OnDestroy, OnChanges {
+  @Input() formData!: CreateAccountFormData;
+  @Input() customers!: Customer[] | null;
+  @Input() plants!: Plant[] | null;
+  @Input() managers!: Manager[] | null;
+  @Input() status!: Statuses | null;
+  @Output() save: EventEmitter<CreateAccountFormData> = new EventEmitter<CreateAccountFormData>();
 
-**ngOnDestroy** - unsubscribe
+  accountTypes = ACCOUNT_TYPES;
+
+  form!: UntypedFormGroup;
+  subscriptions = new Subscription();
+
+  constructor(private readonly fb: UntypedFormBuilder) {
+    this.form = this.fb.group({
+      customerName: [{ value: '', disabled: true }, [Validators.required]],
+      soldTo: ['', [Validators.required]],
+      plantId: [{ value: '', disabled: true }, [Validators.required]],
+      crewId: [{ value: '', disabled: true }],
+      accountType: [{ value: '', disabled: true }, [Validators.required]],
+    });
+
+    this.subscriptions.add(this.soldToControl?.valueChanges.subscribe(soldTo => {
+      this.customerControl?.setValue(
+        this.customers?.find(c => c.soldToID === soldTo)?.customerName ?? '',
+        { onlySelf: false, emitValue: false },
+      );
+    }));
+  }
+
+  get soldToControl(): AbstractControl | null {
+    return this.form.get('soldTo');
+  }
+
+  get customerControl(): AbstractControl | null {
+    return this.form.get('customerName');
+  }
+
+  get plantControl(): AbstractControl | null {
+    return this.form.get('plantId');
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    this.updateFormValue(changes);
+  }
+
+  handleSave(): void {
+    this.save.emit({
+      ...this.form.value,
+      customerName: this.customers?.find(c => c.soldToID === this.soldToControl?.value)?.customerName ?? '',
+      manager: this.managers?.find(m => m.plantId === this.plantControl?.value)?.plantManagerName ?? '',
+      plant: this.plants?.find(p => p.plantID === this.plantControl?.value),
+    });
+  }
+
+  private updateFormValue(changes: SimpleChanges): void {
+    if (!changes.formData || !this.form) {
+      return;
+    }
+
+    if(this.formData.soldTo === 0) {
+      this.formData.soldTo = null;
+    }
+
+    this.form.patchValue(this.formData);
+  }
+
+}
+
+```
+
+**ngAfterViewInit** - A lifecycle hook that is called after Angular has fully initialized a component's view. Define an ngAfterViewInit() method to handle any additional initialization tasks (for example you need update map or table, usually necessary if you use third party libraries  )
+
+```sh
+import ...
+
+@Component({
+  selector: 'app-shared-data-table',
+  templateUrl: './data-table.component.html',
+  styleUrls: ['./data-table.component.scss'],
+})
+export class DataTableComponent<T> implements OnInit, OnDestroy, AfterViewInit {
+
+  constructor(
+    private readonly primengConfig: PrimeNGConfig,
+    private readonly cdr: ChangeDetectorRef,
+  ) {
+  }
+
+  ngOnInit(): void {
+    ...
+  }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+
+    if(this.filters && Object.keys(this.filters).length) {
+      this.showFilters = true;
+    }
+  }
+
+  ngOnDestroy(): void {
+    localStorage.setItem(this.tableType, JSON.stringify(this.showedColumns));
+  }
+}
+
+```
+
+**ngOnDestroy** - A lifecycle hook that is called when a directive, pipe, or service is destroyed. Use for any custom cleanup that needs to occur when the instance is destroyed (unsubscribe or save or clean date) 
 ```sh
 import ....
 
 @Component({
-  selector: 'app-nx-ionic-auth-container',
+  selector: 'app-auth-container',
   templateUrl: './auth-container.component.html',
   styleUrls: ['./auth-container.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +171,8 @@ export class AuthContainerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroy$.next();
+    
+    localStorage.setItem('index', this.index);
   }
   
   private randomNumber(): number {
@@ -61,12 +181,11 @@ export class AuthContainerComponent implements OnInit, OnDestroy {
     return n || 1;
   }
 }
-
 ```
 
-ngafterviewchecked
+**ngAfterViewChecked** - A lifecycle hook that is called after the default change detector has completed checking a component's view for changes (didn't find any examples in my projects)
 
-ngdocheck
+**ngDoCheck** - A lifecycle hook that invokes a custom change-detection function for a directive, in addition to the check performed by the default change-detector (didn't find any examples in my projects)
 
 
 #### 2. When are uppercase and lowercase used in Angular?
@@ -192,4 +311,3 @@ Reactive form and template driven form with validations.
 Routing with lazy loading.
 Angular Material + CDK
 EsLint (before TSLint)
-
